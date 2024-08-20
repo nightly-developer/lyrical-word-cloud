@@ -1,9 +1,17 @@
 import requests
 from decouple import config
+from backend.genius import get_webpage_url
 
-API_CLIENT_ID = config("CLIENT_ID")
-API_CLIENT_SECRET = config("CLIENT_SECRET")
+API_CLIENT_ID = config("SPOTIFY_CLIENT_ID")
+API_CLIENT_SECRET = config("SPOTIFY_CLIENT_SECRET")
 base_url = "https://accounts.spotify.com"
+
+
+def string_manipulation(s):
+    # remove feature artist name from track name
+    index = s.find('(')
+    return s[:index] if index != -1 else  s.rstrip()
+
 
 def get_access_token():
     # URL for the POST request
@@ -31,7 +39,7 @@ def get_access_token():
 
 
 
-def get_songs(access_token,playlist_id):
+def get_tracks(access_token,playlist_id):
     url= f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
     params = {
@@ -56,42 +64,39 @@ def get_songs(access_token,playlist_id):
         items = response_json["items"]
 
         for item in items:
-            search_term = ""
             document = dict()
+            search_object = dict()
+            search_term = ""
             track = item["track"]
+            track_number = track["track_number"] # for consistency
 
             # track information
-            document['track_id'] = track["id"]
-            document['track_name'] = track["name"]
-            search_term += track['name'] + ' '
-            document['popularity'] = track["popularity"]
-            search_term["explicit"] = track["explicit"]
-
-            # for consistency
-            track_number = track["track_number"]
-
+            document["track_id"] = track["id"]
+            track_name = track["name"]
+            document["track_name"] = track_name
+            document["popularity"] = track["popularity"]
 
             # album information
             album = track['album']
             document['album_id'] = album["id"]
             document['album_name'] = album["name"]
-            search_term += album["name"] + ' '
             document['release_date'] = album["release_date"]
 
-
             # artist information
-            artists = track["artists"]
-            for index,artist in enumerate(artists):
-                document['artist_id'] = artist["id"]
-                document['artist_name'] = artist["name"]
+            document["artists"] = track["artists"]
+            artist_name = track["artists"][0]["name"]
 
-            print(document)
-            print(search_term)
+            # search Object
+            track_name = string_manipulation(track["name"])
+            search_term += track_name + ' '
+            search_term += artist_name
+            search_object["track_name"] = track_name
+            search_object["artist_name"] = artist_name
+            search_object["track_number"] = track_number
+            search_object["search_term"] = search_term
+            search_object["explicit"] = track["explicit"]
+
+            # print(document)
+            print(search_object["search_term"],get_webpage_url(search_object))
     else:
         print(response.status_code)
-
-if __name__ == "__main__":
-    # access_token, token_type, expires_in =get_access_token()
-    # print(access_token)
-    access_token = "BQAcNlyQMKU7tyJidflj3HDSFihP-Khis2lTcgIRorZbWzBTjdt3xrj12OgC-V_HAjcS4j2L5GsXS8qAhrKnYRUOwvL-pYm-gWQvCUL6ZglOuUzc2Mg"
-    get_songs(access_token,"4dftIPIYg6pNApHlsCwyJu")
