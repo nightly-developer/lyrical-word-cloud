@@ -25,12 +25,16 @@ def get_webpage_url(search_object):
             context['id'] = result["id"]
             context['title'] = result["title"]
             context['full_title'] = result["full_title"]
-            context['artist_name'] = result["primary_artist"]["name"]
 
-            if search_object["artist_name"] == context["artist_name"]:
+            primary_artists = result["primary_artists"][0]["name"].replace(' &',',')
+            primary_artists = set(primary_artists.split(', '))
+            context['primary_artists'] = primary_artists
+
+            if context["primary_artists"].issubset(search_object["set_of_artists"]):
                 return result["id"]
 
-            return "did not find any match"
+            # return "did not find any match"
+            return context["primary_artists"], search_object["set_of_artists"]
 
 
 

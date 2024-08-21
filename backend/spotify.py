@@ -82,21 +82,38 @@ def get_tracks(access_token,playlist_id):
             document['album_name'] = album["name"]
             document['release_date'] = album["release_date"]
 
+            artist_list = []
+            set_of_artists = set()
+            for artist in track["artists"]:
+                artist_list.append(artist["name"])
+                set_of_artists.add(artist["name"])
+
+            # artist_name = artist_names = ""
+            primary_artists = ""
+            if len(artist_list) > 1:
+                if any(["ft.","feat."]) in artist_list:
+                    primary_artists = artist_list[0]
+                primary_artists = " ".join(artist_list)
+            else:
+                primary_artists = artist_list[0]
+
+
             # artist information
             document["artists"] = track["artists"]
-            artist_name = track["artists"][0]["name"]
+            # artist_name = track["artists"][0]["name"]
 
             # search Object
             track_name = string_manipulation(track["name"])
             search_term += track_name + ' '
-            search_term += artist_name
+            search_term += primary_artists
             search_object["track_name"] = track_name
-            search_object["artist_name"] = artist_name
+            search_object["artist_name"] = primary_artists
+            search_object["set_of_artists"] = set_of_artists
             search_object["track_number"] = track_number
             search_object["search_term"] = search_term
             search_object["explicit"] = track["explicit"]
 
             # print(document)
-            print(search_object["search_term"],get_webpage_url(search_object))
+            print(get_webpage_url(search_object))
     else:
         print(response.status_code)
