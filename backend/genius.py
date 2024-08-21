@@ -31,10 +31,13 @@ def get_webpage_url(search_object):
             context['primary_artists'] = primary_artists
 
             if context["primary_artists"].issubset(search_object["set_of_artists"]):
-                return result["id"]
+                if result["lyrics_state"]:
+                    context['lyrics_path'] = result["path"]
+                    return result["id"]
 
-            # return "did not find any match"
-            return context["primary_artists"], search_object["set_of_artists"]
+
+            return "did not find any match"
+            # return context["primary_artists"], search_object["set_of_artists"]
 
 
 
@@ -43,8 +46,6 @@ def get_webpage_url(search_object):
             # context['release_date_components'] = result["release_date_components"]
             # context['annotation_count'] = result["annotation_count"]
 
-            # if result["lyrics_state"]:
-            #     context['lyrics_path'] = result["path"]
 
             # print(context)
     else:
